@@ -1,0 +1,272 @@
+{% extends 'layout.html' %}
+
+{% block style %}
+<style>
+  /**
+ * The CSS shown here will not be introduced in the Quickstart guide, but shows
+ * how you can use CSS to style your Element's container.
+ */
+  .StripeElement {
+    box-sizing: border-box;
+
+    height: 40px;
+
+    padding: 10px 12px;
+
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background-color: white;
+
+    box-shadow: 0 1px 3px 0 #e6ebf1;
+    -webkit-transition: box-shadow 150ms ease;
+    transition: box-shadow 150ms ease;
+  }
+
+  .StripeElement--focus {
+    box-shadow: 0 1px 3px 0 #cfd7df;
+  }
+
+  .StripeElement--invalid {
+    border-color: #fa755a;
+  }
+
+  .StripeElement--webkit-autofill {
+    background-color: #fefde5 !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+  <h1>Upcoming Events</h1>
+  <div class="row">
+    {% for event in events %}
+    <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12">
+      <div class="tile">
+        <div class="wrapper">
+          <div class="header">{{event.title}}</div>
+
+          <div class="banner-img">
+            {% if event.image_url %}
+            <img src="{{event.image_url}}" alt="">
+            {% elif event.image %}
+            <img src="{{event.image.url}}" alt="">
+            {% else %}
+            <img src="http://via.placeholder.com/640x360" alt="">
+            {% endif %}
+          </div>
+
+          <div class="dates">
+            <div class="start">
+              <strong>STARTS</strong> {{event.start_time}} {{event.start_date}}
+              <span></span>
+            </div>
+            <div class="ends">
+              <strong>ENDS</strong>  {{event.end_date}}
+            </div>
+          </div>
+
+          <div class="stats">
+
+            <div>
+              <strong>INVITED</strong> 3098
+            </div>
+
+            <div>
+              <strong>JOINED</strong> 562
+            </div>
+
+            <div>
+              <strong>DECLINED</strong> 182
+            </div>
+
+          </div>
+
+          <div class="footer">
+            <a href="#" class="Cbtn Cbtn-primary">View</a>
+            <button href="#" class="btn btn-danger" data-toggle="modal" data-target="#buy-ticket">Buy Tickets</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal fade" id="buy-ticket" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">Buy Tickets</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form action="{% url 'charge' %}" method="post" id="payment-form">
+                {% csrf_token %}
+                <div class="form-row form-group">
+                  <label for="">Email</label>
+                  <input type="email" name="email" placeholder="Your Email" class="form-control">
+                  <label for="">Card Holder Name</label>
+                  <input type="text" name="name" placeholder="Full Name" class="form-control">
+                  <label for="">Amount (In USD)</label>
+                  <input type="number" name="amount"  class="form-control" value="{{event.entry_fee}}" readonly>
+                  <label for="card-element">
+                    Credit or debit card
+                  </label>
+                  <div id="card-element" class="form-control">
+                    <!-- A Stripe Element will be inserted here. -->
+                  </div>
+
+                  <!-- Used to display form errors. -->
+                  <div id="card-errors" role="alert"></div>
+                </div>
+
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button class="btn btn-primary">Submit Payment</button>
+              </form>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+  </div>
+  <h1>Ongoing Events</h1>
+  <div class="row">
+    
+    {% for ongoing_event in ongoing_events %}
+    <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12">
+      <div class="tile">
+        <div class="wrapper">
+          <div class="header">{{ongoing_event.title}}</div>
+
+          <div class="banner-img">
+            {% if ongoing_event.image_url %}
+            <img src="{{ongoing_event.image_url}}" alt="">
+            {% elif ongoing_event.image %}
+            <img src="{{ongoing_event.image.url}}" alt="">
+            {% else %}
+            <img src="http://via.placeholder.com/640x360" alt="">
+            {% endif %}
+          </div>
+
+          <div class="dates">
+            <div class="start">
+              <strong>STARTS</strong> {{ongoing_event.start_time}} {{ongoing_event.start_date}}
+              <span></span>
+            </div>
+            <div class="ends">
+              <strong>ENDS</strong>  {{ongoing_event.end_date}}
+            </div>
+          </div>
+
+          <div class="stats">
+
+            <div>
+              <strong>INVITED</strong> 3098
+            </div>
+
+            <div>
+              <strong>JOINED</strong> 562
+            </div>
+
+            <div>
+              <strong>DECLINED</strong> 182
+            </div>
+
+          </div>
+
+          <div class="footer">
+            <a href="#" class="Cbtn Cbtn-primary">View</a>
+            
+          </div>
+        </div>
+      </div>
+      
+      
+    </div>
+    {% endfor %}
+
+  </div>
+  <!-- Modal content -->
+</div>
+
+
+{% endblock %}
+
+{% block script %}
+<script>
+  // Create a Stripe client.
+  var stripe = Stripe('pk_test_FaU4VDh8CgMz9fB8bd4d1U4b00ErthPT3z');
+
+  // Create an instance of Elements.
+  var elements = stripe.elements();
+
+  // Custom styling can be passed to options when creating an Element.
+  // (Note that this demo uses a wider set of styles than the guide below.)
+  var style = {
+    base: {
+      color: '#32325d',
+      fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+      fontSmoothing: 'antialiased',
+      fontSize: '16px',
+      '::placeholder': {
+        color: '#aab7c4'
+      }
+    },
+    invalid: {
+      color: '#fa755a',
+      iconColor: '#fa755a'
+    }
+  };
+
+  // Create an instance of the card Element.
+  var card = elements.create('card', { style: style });
+
+  // Add an instance of the card Element into the `card-element` <div>.
+  card.mount('#card-element');
+
+  // Handle real-time validation errors from the card Element.
+  card.addEventListener('change', function (event) {
+    var displayError = document.getElementById('card-errors');
+    if (event.error) {
+      displayError.textContent = event.error.message;
+    } else {
+      displayError.textContent = '';
+    }
+  });
+
+  // Handle form submission.
+  var form = document.getElementById('payment-form');
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+
+    stripe.createToken(card).then(function (result) {
+      if (result.error) {
+        // Inform the user if there was an error.
+        var errorElement = document.getElementById('card-errors');
+        errorElement.textContent = result.error.message;
+      } else {
+        // Send the token to your server.
+        stripeTokenHandler(result.token);
+      }
+    });
+  });
+
+  // Submit the form with the token ID.
+  function stripeTokenHandler(token) {
+    // Insert the token ID into the form so it gets submitted to the server
+    var form = document.getElementById('payment-form');
+    var hiddenInput = document.createElement('input');
+    hiddenInput.setAttribute('type', 'hidden');
+    hiddenInput.setAttribute('name', 'stripeToken');
+    hiddenInput.setAttribute('value', token.id);
+    form.appendChild(hiddenInput);
+
+    // Submit the form
+    form.submit();
+  }
+</script>
+{% endblock %}
